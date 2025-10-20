@@ -3,7 +3,7 @@ Mon October 20 2025 - Version 2.2
 This maintenance release fix PostgreSQL version compatibility issues and issues
 reported by users since last release.
  
-  - Fix PG 17 compatibility.
+  - Fix PG 17+ compatibility.
   - Fix extension's schema that must be dbms_job instead of pg_dbms_job.
   - Update Copyrights
   - Add GitHub CI tests with different PG versions
