@@ -178,7 +178,11 @@ static void pel_ProcessUtility(PEL_PROCESSUTILITY_PROTO);
 static void pel_ExecutorStart(QueryDesc *queryDesc, int eflags);
 static void pel_ExecutorRun(QueryDesc *queryDesc,
 							ScanDirection direction,
-							uint64 count, bool execute_once);
+							uint64 count
+#if PG_VERSION_NUM < 180000
+							, bool execute_once
+#endif
+							);
 static void pel_ExecutorFinish(QueryDesc *queryDesc);
 static void pel_ExecutorEnd(QueryDesc *queryDesc);
 static void pel_log_error(ErrorData *edata);
@@ -673,16 +677,27 @@ pel_ExecutorStart(QueryDesc *queryDesc, int eflags)
  * ExecutorRun hook: all we need do is track nesting depth
  */
 static void
-pel_ExecutorRun(QueryDesc *queryDesc, ScanDirection direction, uint64 count,
-				 bool execute_once)
+pel_ExecutorRun(QueryDesc *queryDesc, ScanDirection direction, uint64 count
+#if PG_VERSION_NUM < 180000
+				 ,bool execute_once
+#endif
+				 )
 {
 	exec_nested_level++;
 	PG_TRY();
 	{
 		if (prev_ExecutorRun)
-			prev_ExecutorRun(queryDesc, direction, count, execute_once);
+			prev_ExecutorRun(queryDesc, direction, count
+#if PG_VERSION_NUM < 180000
+					, execute_once
+#endif
+					);
 		else
-			standard_ExecutorRun(queryDesc, direction, count, execute_once);
+			standard_ExecutorRun(queryDesc, direction, count
+#if PG_VERSION_NUM < 180000
+					, execute_once
+#endif
+					);
 		exec_nested_level--;
 	}
 	PG_CATCH();

@@ -70,6 +70,8 @@ static void pel_sighup(SIGNAL_ARGS);
 static void pel_process_sighup(void);
 
 static void pel_get_queue_items(pelWorkerQueueItems *items);
+void pel_worker_main(Datum main_arg);
+void pel_dynworker_main(Datum main_arg);
 
 static void
 pel_sighup(SIGNAL_ARGS)

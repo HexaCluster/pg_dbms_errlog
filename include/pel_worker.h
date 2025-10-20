@@ -16,8 +16,13 @@
 
 #include "postgres.h"
 
+#if (PG_VERSION_NUM >= 180000)
+PGDLLEXPORT pg_noreturn void pel_worker_main(Datum main_arg);
+PGDLLEXPORT void pel_dynworker_main(Datum main_arg);
+#else
 #if PG_VERSION_NUM >= 100000
 PGDLLEXPORT void pel_worker_main(Datum main_arg) pg_attribute_noreturn();
 PGDLLEXPORT void pel_dynworker_main(Datum main_arg);
 #endif			/* pg10 */
+#endif			/* pg18 */
 #endif			/* _PEL_WORKER_H */
