@@ -438,5 +438,6 @@ exit 0;
 This extension is free software distributed under the PostgreSQL
 License.
 
-    Copyright (c) 2021-2022 MigOps Inc.
+    Copyright (c) 2021-2023 MigOps Inc.
+    Copyright (c) 2023-2025 HexaCluster Corp.
 

@@ -6,7 +6,8 @@
  * This program is open source, licensed under the PostgreSQL license.
  * For license terms, see the LICENSE file.
  *
- * Copyright (C) 2021-2022: MigOps Inc
+ * Copyright (C) 2021-2023: MigOps Inc
+ * Copyright (c) 2023-2025: HexaCluster Corp.
  *
  *-------------------------------------------------------------------------
  */
@@ -210,8 +211,17 @@ pel_worker_main(Datum main_arg)
 		palloc(sizeof(BackgroundWorkerHandle *) * pel_max_workers);
 
 	elog(PEL_DEBUG, "pel_worker_main(): set bgworker procno: %d",
-		 MyProc->pgprocno);
+#if PG_VERSION_NUM < 170000
+		 MyProc->pgprocno
+#else
+		(MyProc->vxid).procNumber
+#endif
+	);
+#if PG_VERSION_NUM < 170000
 	pg_atomic_write_u32(&pel->bgw_procno, MyProc->pgprocno);
+#else
+	pg_atomic_write_u32(&pel->bgw_procno, (MyProc->vxid).procNumber);
+#endif
 	pel_init_dsm(true);
 
 	while (true)
@@ -284,15 +294,37 @@ pel_worker_main(Datum main_arg)
 				case BGWH_POSTMASTER_DIED:
 					/* postmaster died, simply exit */
 					elog(PEL_DEBUG, "pel_worker_main(): set bgworker procno: %d",
-						 INVALID_PGPROCNO);
-					pg_atomic_write_u32(&pel->bgw_procno, INVALID_PGPROCNO);
+#if PG_VERSION_NUM < 170000
+						INVALID_PGPROCNO
+#else
+						INVALID_PROC_NUMBER
+#endif
+						);
+					pg_atomic_write_u32(&pel->bgw_procno,
+#if PG_VERSION_NUM < 170000
+						INVALID_PGPROCNO
+#else
+						INVALID_PROC_NUMBER
+#endif
+						);
 					exit(1);
 					break;
 				default:
 					/* should not happen */
 					elog(PEL_DEBUG, "pel_worker_main(): set bgworker procno: %d",
-						 INVALID_PGPROCNO);
-					pg_atomic_write_u32(&pel->bgw_procno, INVALID_PGPROCNO);
+#if PG_VERSION_NUM < 170000
+						INVALID_PGPROCNO
+#else
+						INVALID_PROC_NUMBER
+#endif
+						);
+					pg_atomic_write_u32(&pel->bgw_procno,
+#if PG_VERSION_NUM < 170000
+						INVALID_PGPROCNO
+#else
+						INVALID_PROC_NUMBER
+#endif
+						);
 					elog(WARNING, "unexpected worker status %d", status);
 					exit(1);
 					break;
@@ -315,7 +347,12 @@ pel_worker_main(Datum main_arg)
 
 		PS_DISPLAY("sleeping");
 		elog(PEL_DEBUG, "pel_worker_main(): sleeping (procno: %d)",
-			 MyProc->pgprocno);
+#if PG_VERSION_NUM < 170000
+		MyProc->pgprocno
+#else
+		(MyProc->vxid).procNumber
+#endif
+			 );
 		rc = WaitLatch(&MyProc->procLatch,
 				WL_LATCH_SET | WL_TIMEOUT | WL_POSTMASTER_DEATH,
 				pel_frequency * 1000,

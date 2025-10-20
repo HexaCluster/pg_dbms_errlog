@@ -6,7 +6,8 @@
  * This program is open source, licensed under the PostgreSQL license.
  * For license terms, see the LICENSE file.
  *
- * Copyright (C) 2021-2022: MigOps Inc
+ * Copyright (C) 2021-2023: MigOps Inc
+ * Copyright (c) 2023-2025: HexaCluster Corp.
  *
  *-------------------------------------------------------------------------
  */
@@ -374,7 +375,11 @@ pel_publish_queue(bool sync)
 		 * be notify, otherwise we know it was already processed so we can
 		 * inform caller.
 		 */
+#if PG_VERSION_NUM < 170000
 		if (queue.entries[pos].pgprocno == MyProc->pgprocno)
+#else
+		if (queue.entries[pos].pgprocno == (MyProc->vxid).procNumber)
+#endif
 			queue.entries[pos].notify = true;
 		else
 			local_data.last_pos = -1;
@@ -414,7 +419,11 @@ pel_publish_queue(bool sync)
 	local_data.last_pos = pos;
 
 	queue.entries[pos].dbid = MyDatabaseId;
+#if PG_VERSION_NUM < 170000
 	queue.entries[pos].pgprocno = MyProc->pgprocno;
+#else
+	queue.entries[pos].pgprocno = (MyProc->vxid).procNumber;
+#endif
 	queue.entries[pos].handle = dsa_get_handle(local_data.area);
 	queue.entries[pos].pentry = local_data.pentry;
 	queue.entries[pos].notify = sync;
@@ -446,7 +455,11 @@ wait_for_bgworker:
 		int		sleep_time = 1;
 		bool	processed;
 
+#if PG_VERSION_NUM < 170000
 		while (bgw_procno == INVALID_PGPROCNO)
+#else
+		while (bgw_procno == INVALID_PROC_NUMBER)
+#endif
 		{
 			/*
 			 * If we're in the middle of an error interruption, interrupts will
@@ -482,7 +495,13 @@ wait_for_bgworker:
 		 * And sleep until the launched dynamic bgworker wakes us.
 		 */
 		elog(PEL_DEBUG, "pel_publish_queue(): sleep until the launched dynamic"
-				" bgworker wakes us, procno: %d", MyProc->pgprocno);
+				" bgworker wakes us, procno: %d",
+#if PG_VERSION_NUM < 170000
+				MyProc->pgprocno
+#else
+				(MyProc->vxid).procNumber
+#endif
+				);
 		processed = false;
 		while (!processed)
 		{
@@ -494,7 +513,13 @@ wait_for_bgworker:
 					PG_WAIT_EXTENSION);
 			ResetLatch(&MyProc->procLatch);
 			elog(PEL_DEBUG, "pel_publish_queue() woke up, rc: %d"
-					" (procno: %d)", rc, MyProc->pgprocno);
+					" (procno: %d)", rc,
+#if PG_VERSION_NUM < 170000
+					MyProc->pgprocno
+#else
+					(MyProc->vxid).procNumber
+#endif
+					);
 
 			/*
 			 * If we're in the middle of an error interruption, interrupts will
@@ -527,9 +552,20 @@ wait_for_bgworker:
 			 * possible the system consumed the whole queue entries and the
 			 * entry at the given position now belongs to another backend.
 			 */
-			elog(PEL_DEBUG, "pel_publish_queue(): Checking if item at pos %d is processed %d (queue.pgprocno: %d / MyProc->pgprocno: %d.", pos, queue.entries[pos].processed, queue.entries[pos].pgprocno, MyProc->pgprocno);
+			elog(PEL_DEBUG, "pel_publish_queue(): Checking if item at pos %d is processed %d (queue.pgprocno: %d / MyProc->pgprocno: %d.", pos, queue.entries[pos].processed, queue.entries[pos].pgprocno,
+#if PG_VERSION_NUM < 170000
+					MyProc->pgprocno
+#else
+					(MyProc->vxid).procNumber
+#endif
+					);
 			processed = (queue.entries[pos].processed ||
-					queue.entries[pos].pgprocno != MyProc->pgprocno);
+#if PG_VERSION_NUM < 170000
+					queue.entries[pos].pgprocno != MyProc->pgprocno
+#else
+					queue.entries[pos].pgprocno != (MyProc->vxid).procNumber
+#endif
+					);
 			LWLockRelease(pel->lock);
 
 			/* There won't be any need to check for that entry anymore */
@@ -587,12 +623,20 @@ pel_worker_entry_complete(void)
 	if (queue.entries[local_data.pos].notify)
 		pgprocno = queue.entries[local_data.pos].pgprocno;
 	else
+#if PG_VERSION_NUM < 170000
 		pgprocno = INVALID_PGPROCNO;
+#else
+		pgprocno = INVALID_PROC_NUMBER;
+#endif
 	LWLockRelease(pel->lock);
 
 	elog(PEL_DEBUG, "pel_worker_entry_complete(): notify caller %d if it was required after releasing pel->lock", pgprocno);
 	/* Notify caller if it was required after releasing pel->lock */
+#if PG_VERSION_NUM < 170000
 	if (pgprocno != INVALID_PGPROCNO)
+#else
+	if (pgprocno != INVALID_PROC_NUMBER)
+#endif
 		SetLatch(&ProcGlobal->allProcs[pgprocno].procLatch);
 
 	/* Finally clean all local data structures */

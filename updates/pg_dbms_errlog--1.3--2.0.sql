@@ -11,16 +11,16 @@ SET LOCAL check_function_bodies = on ;
 -- make sure of client encofing
 SET LOCAL client_encoding = 'UTF8';
 
-CREATE OR REPLACE FUNCTION @extschema@.publish_queue(
+CREATE OR REPLACE FUNCTION dbms_errlog.publish_queue(
     wait_for_completion bool DEFAULT false
 ) RETURNS bool
 LANGUAGE C COST 1000
 AS '$libdir/pg_dbms_errlog', 'pg_dbms_errlog_publish_queue';
-REVOKE ALL ON FUNCTION @extschema@.publish_queue FROM public;
+REVOKE ALL ON FUNCTION dbms_errlog.publish_queue FROM public;
 
-CREATE OR REPLACE FUNCTION @extschema@.queue_size(
+CREATE OR REPLACE FUNCTION dbms_errlog.queue_size(
     OUT num_errors integer
 ) RETURNS integer
 LANGUAGE C COST 1000
 AS '$libdir/pg_dbms_errlog', 'pg_dbms_errlog_queue_size';
-GRANT ALL ON FUNCTION @extschema@.queue_size TO public;
+GRANT ALL ON FUNCTION dbms_errlog.queue_size TO public;

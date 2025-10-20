@@ -11,7 +11,7 @@ SET LOCAL check_function_bodies = on ;
 -- make sure of client encofing
 SET LOCAL client_encoding = 'UTF8';
 
-CREATE OR REPLACE PROCEDURE @extschema@.create_error_log (
+CREATE OR REPLACE PROCEDURE dbms_errlog.create_error_log (
     dml_table_name varchar(132), -- name of the DML table to base the error logging table on, can use fqdn.
     err_log_table_name varchar(132) DEFAULT NULL, -- name of the error logging table to create, default is the first 58 characters in the name of the DML table prefixed with 'ERR$_', can use fqdn.
     err_log_table_owner name DEFAULT NULL, -- name of the owner of the error logging table. Default current user.
@@ -63,7 +63,7 @@ BEGIN
     IF err_log_table_space IS NOT NULL THEN
         EXECUTE 'ALTER TABLE '||err_log_tbname||' SET TABLESPACE '||err_log_table_space||' NOWAIT';
     END IF;
-    sql_register_table := 'INSERT INTO @extschema@.register_errlog_tables VALUES ('''||dml_table_name||'''::regclass::oid, '''||err_log_tbname||'''::regclass::oid)';
+    sql_register_table := 'INSERT INTO dbms_errlog.register_errlog_tables VALUES ('''||dml_table_name||'''::regclass::oid, '''||err_log_tbname||'''::regclass::oid)';
     EXECUTE sql_register_table;
 END;
 $$

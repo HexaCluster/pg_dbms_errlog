@@ -7,7 +7,8 @@
  * This program is open source, licensed under the PostgreSQL license.
  * For license terms, see the LICENSE file.
  *
- * Copyright (C) 2021-2022: MigOps Inc
+ * Copyright (C) 2021-2023: MigOps Inc
+ * Copyright (c) 2023-2025: HexaCluster Corp.
  *
  *-------------------------------------------------------------------------
  */
@@ -527,9 +528,15 @@ pel_shmem_startup(void)
 
 		/* First time through ... */
 		pel->bgw_saved_cur = 0;
+#if PG_VERSION_NUM < 170000
 		pg_atomic_init_u32(&pel->bgw_procno, INVALID_PGPROCNO);
 		StaticAssertStmt(sizeof(INVALID_PGPROCNO <= sizeof(pel->bgw_procno)),
 				"INVALID_PGPROCNO is bigger for uint32");
+#else
+		pg_atomic_init_u32(&pel->bgw_procno, INVALID_PROC_NUMBER);
+		StaticAssertStmt(sizeof(INVALID_PROC_NUMBER <= sizeof(pel->bgw_procno)),
+				"INVALID_PROC_NUMBER is bigger for uint32");
+#endif
 		pel->lock = &(GetNamedLWLockTranche(PEL_TRANCHE_NAME))->lock;
 		pel->pel_dsa_handle = DSM_HANDLE_INVALID;
 		pel->pqueue = InvalidDsaPointer;

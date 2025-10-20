@@ -12,7 +12,7 @@ SET LOCAL check_function_bodies = on ;
 SET LOCAL client_encoding = 'UTF8';
 
 
-CREATE OR REPLACE FUNCTION @extschema@.unregister_errlog_table()
+CREATE OR REPLACE FUNCTION dbms_errlog.unregister_errlog_table()
   RETURNS event_trigger
   AS $$
 DECLARE
@@ -22,11 +22,11 @@ BEGIN
     IF tg_tag = 'DROP TABLE' OR tg_tag = 'DROP SCHEMA' THEN
 	FOR relinfo IN SELECT * FROM pg_catalog.pg_event_trigger_dropped_objects() WHERE object_type IN ('table', 'view')
 	LOOP
-            sql_unregister_table := 'DELETE FROM @extschema@.register_errlog_tables WHERE reldml ='||relinfo.objid||' OR relerrlog = '||relinfo.objid;
+            sql_unregister_table := 'DELETE FROM dbms_errlog.register_errlog_tables WHERE reldml ='||relinfo.objid||' OR relerrlog = '||relinfo.objid;
             EXECUTE sql_unregister_table;
         END LOOP;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE EVENT TRIGGER ddl_drop_errlog_table ON sql_drop EXECUTE PROCEDURE @extschema@.unregister_errlog_table();
+CREATE EVENT TRIGGER ddl_drop_errlog_table ON sql_drop EXECUTE PROCEDURE dbms_errlog.unregister_errlog_table();

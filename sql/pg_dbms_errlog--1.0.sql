@@ -13,24 +13,24 @@ SET LOCAL client_encoding = 'UTF8';
 
 
 -- Create the extension schema
-CREATE SCHEMA IF NOT EXISTS @extschema@;
-REVOKE ALL ON SCHEMA @extschema@ FROM PUBLIC;
-GRANT USAGE ON SCHEMA @extschema@ TO PUBLIC;
+CREATE SCHEMA IF NOT EXISTS dbms_errlog;
+REVOKE ALL ON SCHEMA dbms_errlog FROM PUBLIC;
+GRANT USAGE ON SCHEMA dbms_errlog TO PUBLIC;
 
 
 -- Create registration table for error loging tables association
-CREATE TABLE @extschema@.register_errlog_tables
+CREATE TABLE dbms_errlog.register_errlog_tables
 (
 	reldml oid, -- oid of the table where DML are done
 	relerrlog oid -- oid of the table for error logging
 );
-CREATE UNIQUE INDEX ON @extschema@.register_errlog_tables(reldml);
-CREATE UNIQUE INDEX ON @extschema@.register_errlog_tables(relerrlog);
+CREATE UNIQUE INDEX ON dbms_errlog.register_errlog_tables(reldml);
+CREATE UNIQUE INDEX ON dbms_errlog.register_errlog_tables(relerrlog);
 
 -- Include tables into pg_dump
 SELECT pg_catalog.pg_extension_config_dump('register_errlog_tables', '');
 
-CREATE OR REPLACE PROCEDURE @extschema@.create_error_log (
+CREATE OR REPLACE PROCEDURE dbms_errlog.create_error_log (
     dml_table_name varchar(132), -- name of the DML table to base the error logging table on, can use fqdn.
     err_log_table_name varchar(132) DEFAULT NULL, -- name of the error logging table to create, default is the first 58 characters in the name of the DML table prefixed with 'ERR$_', can use fqdn.
     err_log_table_owner name DEFAULT NULL, -- name of the owner of the error logging table. Default current user.
@@ -66,7 +66,7 @@ BEGIN
     IF err_log_table_space IS NOT NULL THEN
 	EXECUTE 'ALTER TABLE '||err_log_tbname||' SET TABLESPACE '||err_log_table_space||' NOWAIT';
     END IF;
-    sql_register_table := 'INSERT INTO @extschema@.register_errlog_tables VALUES ('''||dml_table_name||'''::regclass::oid, '''||err_log_tbname||'''::regclass::oid)';
+    sql_register_table := 'INSERT INTO dbms_errlog.register_errlog_tables VALUES ('''||dml_table_name||'''::regclass::oid, '''||err_log_tbname||'''::regclass::oid)';
     EXECUTE sql_register_table;
 END;
 $$
