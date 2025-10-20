@@ -17,9 +17,9 @@
 	},
 	"provides": {
 		"pg_dbms_errlog": {
-			"file": "sql/pg_dbms_errlog--2.1.sql",
+			"file": "sql/pg_dbms_errlog--2.2.sql",
 			"docfile": "README.md",
-			"version": "2.1",
+			"version": "2.2",
 			"abstract": "Extension to log DML errors to dedicated tables"
 		}
 	},
@@ -34,12 +34,12 @@
 	],
     "resources": {
         "bugtracker": {
-            "web": "https://github.com/MigOpsRepos/pg_dbms_errlog/issues"
+            "web": "https://github.com/HexaCluster/pg_dbms_errlog/issues"
         },
         "repository": {
             "type": "git",
-            "url": "git://github.com/MigOpsRepos/pg_dbms_errlog",
-            "web": "https://github.com/MigOpsRepos/pg_dbms_errlog"
+            "url": "git://github.com/HexaCluster/pg_dbms_errlog",
+            "web": "https://github.com/HexaCluster/pg_dbms_errlog"
         }
     }
 }
