@@ -51,7 +51,7 @@ jobs:
 
     - name: test
       run: |
-        sudo pg_conftool $PGVERSION main set shared_preload_libraries pg_dbms_job
+        sudo pg_conftool $PGVERSION main set shared_preload_libraries pg_dbms_errlog
         sudo service postgresql restart
         make installcheck
 
