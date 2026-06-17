@@ -312,7 +312,7 @@ pel_prepare_entry(void)
  * Cleanup local variables and detach from the local area.
  */
 static void
-pel_cleanup_local()
+pel_cleanup_local(void)
 {
 	Assert(local_data.area != NULL);
 
