@@ -6,9 +6,9 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ mzin ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -31,13 +31,14 @@ jobs:
           - 16
           - 17
           - 18
+          - 19
 
     env:
       PGVERSION: ${{ matrix.pgversion }}
 
     steps:
     - name: checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@main
 
     - name: install pg
       run: |
@@ -49,10 +50,13 @@ jobs:
         make PROFILE="-Werror"
         sudo -E make install
 
-    - name: test
+    - name: config
       run: |
         sudo pg_conftool $PGVERSION main set shared_preload_libraries pg_dbms_errlog
         sudo service postgresql restart
+
+    - name: test
+      run: |
         make installcheck
 
     - name: show regression diffs
