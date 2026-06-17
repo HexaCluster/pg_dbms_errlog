@@ -1,3 +1,12 @@
+Wed June 17 2026 - Version 2.3
+
+This maintenance release fix PostgreSQL version compatibility issues for PG >= 18.
+ 
+  - Fix another warning with PG19 compilation
+  - Fix build failures against PostgreSQL 19. Thanks to Devrim Gunduz for the patch.
+  - Fix compilation errors with PG v18
+  - Create CI workflow
+
 Mon October 20 2025 - Version 2.2
 
 This maintenance release fix PostgreSQL version compatibility issues and issues
