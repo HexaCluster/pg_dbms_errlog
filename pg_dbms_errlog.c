@@ -142,25 +142,24 @@ static const struct config_enum_entry pel_sync_options[] =
 #define PEL_SYNC_ON_XACT()	(pel_synchronous == PEL_SYNC_XACT || \
 		(pel_synchronous == PEL_SYNC_QUERY && IsTransactionBlock()))
 bool pel_debug = false;
-bool pel_done = false;
-bool pel_enabled = false;
+static bool pel_done = false;
+static bool pel_enabled = false;
 int pel_frequency = 60;
 int pel_max_workers = 1;
 int  pel_reject_limit = -1;
-char *query_tag = NULL;
-int pel_synchronous = PEL_SYNC_XACT;
-bool pel_no_client_error = true;
+static char *query_tag = NULL;
+static int pel_synchronous = PEL_SYNC_XACT;
+static bool pel_no_client_error = true;
 
 /* global variable used to store DML table name */
-char *current_dml_table = NULL;
-char current_dml_kind = '\0';
-char *current_bind_parameters = NULL;
+static char current_dml_kind = '\0';
+static char *current_bind_parameters = NULL;
 
 /* Current nesting depth of ExecutorRun calls */
 static int	exec_nested_level = 0;
 
 /* cache to store query of prepared stamement */
-struct HTAB *PreparedCache = NULL;
+static struct HTAB *PreparedCache = NULL;
 
 /* Functions declaration */
 void        _PG_init(void);
