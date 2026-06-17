@@ -7,7 +7,7 @@
  * For license terms, see the LICENSE file.
  *
  * Copyright (C) 2021-2023: MigOps Inc
- * Copyright (c) 2023-2025: HexaCluster Corp.
+ * Copyright (c) 2023-2026: HexaCluster Corp.
  *
  *-------------------------------------------------------------------------
  */
