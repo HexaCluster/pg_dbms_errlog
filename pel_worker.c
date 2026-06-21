@@ -136,10 +136,12 @@ pel_get_queue_items(pelWorkerQueueItems *items)
 	}
 
 	pos = pel->bgw_err;
-	while (true)
+	for (;;)
 	{
 		Oid dbid;
 		int i, arrid;
+
+		CHECK_FOR_INTERRUPTS();
 
 		pos = PEL_POS_NEXT(pos);
 
@@ -187,6 +189,7 @@ pel_get_queue_items(pelWorkerQueueItems *items)
 		/* Reached current queue item, no more work to do. */
 		if (pos == pel->cur_err)
 			break;
+
 	}
 	LWLockRelease(pel->lock);
 }
@@ -226,9 +229,11 @@ pel_worker_main(Datum main_arg)
 #endif
 	pel_init_dsm(true);
 
-	while (true)
+	for (;;)
 	{
 		int i, last, rc;
+
+		CHECK_FOR_INTERRUPTS();
 
 		pel_process_sighup();
 
@@ -398,10 +403,12 @@ pel_dynworker_main(Datum main_arg)
 	set_config_option("pg_dbms_errlog.enabled", "off",
 			PGC_SUSET, PGC_S_SESSION, GUC_ACTION_SET, true, 0, false);
 
-	while(true)
+	for (;;)
 	{
 		Oid new_dbid;
 		int rc;
+
+		CHECK_FOR_INTERRUPTS();
 
 		SetCurrentStatementStartTimestamp();
 		StartTransactionCommand();

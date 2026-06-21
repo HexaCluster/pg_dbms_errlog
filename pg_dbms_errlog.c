@@ -109,7 +109,6 @@ static ExecutorRun_hook_type prev_ExecutorRun = NULL;
 static ExecutorFinish_hook_type prev_ExecutorFinish = NULL;
 static ExecutorEnd_hook_type prev_ExecutorEnd = NULL;
 static emit_log_hook_type prev_emit_log_hook = NULL;
-static post_parse_analyze_hook_type prev_post_parse_analyze_hook = NULL;
 
 /* Links to shared memory state */
 pelSharedState *pel = NULL;
@@ -450,7 +449,6 @@ _PG_init(void)
 	ExecutorEnd_hook = pel_ExecutorEnd;
 	prev_emit_log_hook = emit_log_hook;
 	emit_log_hook = pel_log_error;
-	prev_post_parse_analyze_hook = post_parse_analyze_hook;
 
 	memset(&worker, 0, sizeof(BackgroundWorker));
 	worker.bgw_flags = BGWORKER_SHMEM_ACCESS;
