@@ -403,12 +403,13 @@ pel_dynworker_main(Datum main_arg)
 		Oid new_dbid;
 		int rc;
 
+		SetCurrentStatementStartTimestamp();
+		StartTransactionCommand();
+
 		rc = SPI_connect();
 		if (rc != SPI_OK_CONNECT)
 			ereport(WARNING, (errmsg("Can not connect to SPI manager.")));
 
-		StartTransactionCommand();
-		SetCurrentStatementStartTimestamp();
 		PushActiveSnapshot(GetTransactionSnapshot());
 
 		for(i = 0; i < entry->num_errors; i++)
