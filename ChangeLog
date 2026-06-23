@@ -1,3 +1,10 @@
+Tue June 23 2026 - Version 2.4
+
+This maintenance release fixed two major bugs.
+
+  - Fix non-interruptible loops in background worker after sending the stop signal.
+  - Fix crash in dynamic bgworker. Thanks to Devrim Gunduz for the patch.
+
 Wed June 17 2026 - Version 2.3
 
 This maintenance release fix PostgreSQL version compatibility issues for PG >= 18.
