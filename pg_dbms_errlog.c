@@ -759,6 +759,19 @@ pel_log_error(ErrorData *edata)
 		|| !edata || edata->elevel != ERROR /* Only process errors */
 		|| !debug_query_string /* Ignore errors raised from non-backend processes */
 		|| edata->sqlerrcode == ERRCODE_SUCCESSFUL_COMPLETION
+		/*
+		 * We need catalog access (RangeVarGetRelid, SPI, table_open) to find
+		 * the error log table, which is only possible in a valid transaction
+		 * state.  When the error is raised while the transaction is already
+		 * aborted (e.g. "current transaction is aborted, commands ignored
+		 * until end of transaction block" for a statement following a failed
+		 * DML in a transaction block without SAVEPOINT), the resource owner
+		 * has already been released: doing catalog lookups here would raise
+		 * "ResourceOwnerEnlarge called after release started" (or fail an
+		 * assertion on cassert builds) and hide the original error.  Such
+		 * errors are not DML errors anyway, so let them through untouched.
+		 */
+		|| !IsTransactionState()
 		)
 	{
 		goto prev_hook;

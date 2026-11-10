@@ -21,7 +21,8 @@ TESTS        =  00-init  \
 		02-upt-del \
 		03-trig-fct \
 		04-partition \
-		05-privileges
+		05-privileges \
+		06-aborted-xact
 
 REGRESS      = $(patsubst test/sql/%.sql,%,$(TESTS))
 REGRESS_OPTS = --inputdir=test

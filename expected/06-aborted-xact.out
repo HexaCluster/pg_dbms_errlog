@@ -1,0 +1,65 @@
+--
+-- Issue #15: a failing DML inside a transaction block without SAVEPOINT
+-- leaves the transaction aborted.  The following statements must get the
+-- regular 25P02 error and not an internal error raised by the extension
+-- trying to access the catalog from the emit_log_hook.
+--
+CREATE TABLE t_abort (id int PRIMARY KEY);
+CALL dbms_errlog.create_error_log('t_abort');
+SET pg_dbms_errlog.enabled TO true;
+-- synchronous = query: error is published immediately
+SET pg_dbms_errlog.synchronous = query;
+BEGIN;
+INSERT INTO t_abort VALUES (1);
+-- duplicate key, logged and not reported to the client
+INSERT INTO t_abort VALUES (1);
+-- must fail with 25P02
+INSERT INTO t_abort VALUES (2);
+ERROR:  current transaction is aborted, commands ignored until end of transaction block
+UPDATE t_abort SET id = 3;
+ERROR:  current transaction is aborted, commands ignored until end of transaction block
+DELETE FROM t_abort;
+ERROR:  current transaction is aborted, commands ignored until end of transaction block
+COMMIT;
+SELECT count(*) FROM t_abort;
+ count 
+-------
+     0
+(1 row)
+
+SELECT "pg_err_number$", "pg_err_optyp$" FROM "ERR$_t_abort";
+ pg_err_number$ | pg_err_optyp$ 
+----------------+---------------
+ 23505          | I
+(1 row)
+
+-- synchronous = transaction: queue is discarded when COMMIT rolls back
+SET pg_dbms_errlog.synchronous = transaction;
+BEGIN;
+INSERT INTO t_abort VALUES (1);
+INSERT INTO t_abort VALUES (1);
+INSERT INTO t_abort VALUES (2);
+ERROR:  current transaction is aborted, commands ignored until end of transaction block
+COMMIT;
+SELECT count(*) FROM t_abort;
+ count 
+-------
+     0
+(1 row)
+
+SELECT count(*) FROM "ERR$_t_abort";
+ count 
+-------
+     1
+(1 row)
+
+-- the session is still usable
+SELECT 1 AS alive;
+ alive 
+-------
+     1
+(1 row)
+
+SET pg_dbms_errlog.enabled TO false;
+DROP TABLE "ERR$_t_abort";
+DROP TABLE t_abort;
